@@ -51,9 +51,12 @@ export interface IProduct {
     description: string;
     image: string;
     title: string;
-    category: ProductCategory;
+    category: string;
     price: number | null;
+    status: boolean;
+    inBasket: boolean;
 }
+
 ```
 
 Интерфейс для модели данных карточек
@@ -62,15 +65,10 @@ export interface IProduct {
 export interface IProductsData {
     catalog: IProduct[];
     preview:string | null;
-}
-```
-
-Интерфейс корзины
-
-```
-export interface IBasket {
-    catalog: IBasketItem[];
-    totalprice: number | null;
+    getProducts(): IProductsData;
+	getProduct(productId: string): IProduct;
+	addProductToBasket(productId: string): IBasketItem;
+    removeProductFromBasket(productId: string, payload: Function | null): void;
 }
 ```
 
@@ -84,12 +82,39 @@ export type IBasketItem = Pick<IProduct, '_id' | 'title' | 'price'>;
 
 ```
 export interface IOrder {
-    payment: PaymentType;
-    adress: string;
-    email: string;
-    number: string;
+    payment: string;
+    address: string;
+    email?: string;
+    phone?: string;
     total: number;
     items: string[];
+}
+```
+Интерфейс второй формы заказа
+
+```
+export interface IContacts{
+    email: string;
+    phone: string;
+}
+```
+Данные форм ошибок, используемые в первой форме
+
+```
+export type FormOrderErrors = Partial<Record<keyof IOrder, string>>;
+```
+
+Данные форм ошибок, используемые во второй форме
+
+```
+export type FormConactsErrors = Partial<Record<keyof IContacts, string>>;
+```
+
+Интерфейс для изменений элементов каталога
+
+```
+export interface CatalogChangeEvent{
+    catalog: IProduct[];
 }
 ```
 
@@ -97,7 +122,7 @@ export interface IOrder {
 
 ```
 export interface IOrderResult {
-    _id: string[];
+    id: string[];
     total: number;
     error?: string;
 }
@@ -118,47 +143,51 @@ export interface IOrderResult {
  - `get` - выполяет GET запрос на переданный в параметрах ендпоинт и возвращает промис с объектом, которым ответил сервер
  - `post` - принимает объект с данными, которые будут переданы в JSON в теле запроса, и отправляет эти данные в ендпоинт, переданный как параметр при вызове метода.
 
- #### Класс EventEmitter
+#### Класс EventEmitter
  Брокер событий позволяет отправлять события и подписываться на события, происходящие в системе. Класс используется в презентере для обработки событий и в слоях приложения для генерации событий.
  Основные методы, реализуемые классом, описаны интерфейсом `IEvents`:
   - `on` - подписка на событие,
   - `emit` - инициализация события, 
   - `trigget` - возвращает ф-ию, при вызове которой иницилизируется требуемое в параметрах событие.
 
+#### Класс Component<T>
+ Базовый абстрактный класс как инструментарий для работы с DOM в дочерних компонентах
+
+#### Класс Model<T>
+ Базовый абстрактный класс, чтобы можно было отличить дочерние от простых объектов с данными
+  
+
 ### Слой данных
 
 #### Класс ProductsData
-Класс отвечает за логику работы с карточками товаров.\
+Класс отвечает за логику всей работы.\
 Конструктор класса принимает инстант брокера событий\
+Наследует абстрактный класс Model<T>\
 В полях класса хранятся следующие данные:
+
  - catalog: IProduct[] - массив объектов товаров
  - preview:string | null - id карточки, выбранной для просмотра в модальном окне
- - events: IEvents - экземпляр класса `EventEmitter` для инициации событий при добавление в корзину
+ - order: IOrder - заказ товаров
+ - contacts: IContacts - данные пользователя, заказывающий товар
+ - formOrderErrors: FormOrderErrors 
+ - formConactsErrors: FormConactsErrors 
 
  Также класс предоставляет набор методов для взаимодействия с этими данными.
- - getProducts(): IProductsData - возвращает массив карточек
- - getProduct(productId: string): IProduct - возвращает карточку товара по её id
- - addProductToBasket(productId: IBasketItem): IBasketItem; - добавляет карточку товара в корзину по ее id
- - removeProductFromBasket(productId: string, payload: Function | null): void - удаление из корзины продукта при нажатии на уже добавленные продукт
- - а также сеттеры и геттеры для сохранения и получения данных из полей класса
-
-#### Класс OrderFromBasket
-Класс отвечает за логику работы с корзиной и оформлением заказа.\
-Конструктор класса принимает инстант брокера событий\
-В полях класса хранятся следующие данные:
- - items: IBasketItem[] - массив объектов товаров из корзины
- - totalprice: number | null - цена всех товаров в корзине
-
-Также класс предоставляет набор методов для взаимодействия с этими данными.
- - getBasketItems(): IBasketItem[] | null - возвращает массив товаров корзины
- - getBasketItem(basketItemId: string): IBasketItem  - возвращает карточку товара в корзине по её id
- - deleteBasketItem(basketItemId: string, payload: Function | null): void - удаляет продукт из корзины
- - createOrder(order: IOrder):IOrderResult - оформление заказа
- - validateOrder(field: keyof IOrder):boolean- валидация форм заказа
+ - setCatalog(items: IProduct[]) - устанавливает карточки
+ - setPreview(item: IProduct) - превью карточки продукта
+ - addProductInBasket(item: IProduct) - добавляем товар в корзину
+ - getBasket() - получаем продукты в корзине
+ - clearBasket() - очищаем все продукты из корзины
+ - getTotalPrice() - получаем сумарную стоимость товаров в корзине
+ - removeProductFromBasket(item: IProduct) - удаляем товар из корзины
+ - setOrderField и setContactsField - устанавливаем значения в формы заказа
+ - validateOrder() и validateContacts() - валидация вводимых данных
+ - setContactsToOrder() и setItems() - передаем значения введеных данных и item'ы в заказ для отправки
+ - clearOrde() - очистка заказа
 
 
 ### Классы представления
-Все классы представления отвечают за отображения внутри контейнера (DOM-элемент) передаваемых в них данных.
+Все классы представления отвечают за отображения внутри контейнера (DOM-элемент) передаваемых в них данных. Все классы представления наследуют абстрактный класс Component<T>\
 
 #### Класс ModalUI
 Реализует модальное окно. 
@@ -194,14 +223,14 @@ export interface IOrderResult {
 - get form: HTMLElement - геттер для получения элемента формы
 
 
-#### Класс CardUI
+#### Класс ProductUI
 Отвечает за отображение карточки продукта и используется для отображения на странице сайта. В конструктор класса передается DOM-элемент темплейта. Поля класса содержат элементы разметки элементов карточки. Конструктор, кроме темплейта принимает экземпляр `EventEmitter` для инициации событий.\
 Методы:
 - сеттеры - заполняет атрибуты элементов карточки данными
 - геттеры - возвращают необходимые данные карточки
 
-#### Класс BasketCardUI
-Отвечает за отображение карточки продукта в корзине.
+#### Класс BasketUI
+Отвечает за отображение корзины.
 - constructor(container: HTMLElement, events: IEvents) Конструктор принимает HTMLElement (который нужно отобразить) и экземпляр класса `EventEmitter` для возможности инициации событий.
 
 Поля класса:
@@ -209,9 +238,12 @@ export interface IOrderResult {
 - total - общая стоимость товаров в корзине
 
 #### Класс OrderUI
-Отвечает за отображение заказа и управление им. Класс наследуется от FormUI.
+Отвечает за отображение первой формы заказа и управление им. Класс наследуется от FormUI.
 
-#### Класс OrderResultUI
+#### Класс ContactsUI
+Отвечает за отображение второй формы заказа и управление им. Класс наследуется от FormUI.
+
+#### Класс SuccessUI
 Выполняет функцию отображения результата выполнения заказа.
 - constructor(container: HTMLElement, events: IEvents) Конструктор принимает HTMLElement (который нужно отобразить).
 
@@ -239,15 +271,21 @@ export interface IOrderResult {
 
 *Список всех событий, которые могут генерироваться в системе.*\
 *События изменения данных*
-- `cards:changed` - изменения массива карточек продукта
+- ['ITEMS_CHANGED']: 'items:changed' - изменения массива карточек продукта
 
 *События, возникающие при взаимодействие пользователя с интерфейсом*\
-- `card:select` - выбор карточки для отображения в модельном окне
-- `card:open` - открытие модального окна с карточкой продукта
-- `product:add` - добавление продукта в корзину
-- `product:remove` - удаления продукта из корзины
-- `basket:open` - открытие корзины
-- `order:create` - оформление заказа
-- `order:paymentType` - выбор формы оплаты
-- `order:validation` - проверка формы валидации
+- ['CLEAR_ORDER']: 'clear:order',
+- ['CONTACTS_SUBMIT']: 'contacts:submit',
+- ['ORDER_READY']: 'order:ready',
+- ['ORDER_SUBMIT']: 'order:submit',
+- ['FORM_ORDER_ERRORS_CHANGE']: 'formOrderErrors:changed',
+- ['FORM_CONTACTS_ERRORS_CHANGE']: 'formContactsErrors:changed',
+- ['ORDER_OPEN']: 'order:open',
+- ['OPEN_PREVIEW']: 'product:open-preview',
+- ['CHANGED_PREVIEW']: 'product:changed-preview',
+- ['ADD_PRODUCT']: 'card:add-product',
+- ['BASKET_OPEN']: 'basket:open',
+- ['REMOVE_PRODUCT']: 'card:remove-product',
+- ['MODAL_CLOSE']: 'modal:close',
+- ['MODAL_OPEN']: 'modal:open',
 
