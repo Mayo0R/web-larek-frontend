@@ -1,6 +1,6 @@
 import {Component} from "../base/Component";
 import {IEvents} from "../base/Events";
-import {ensureElement} from "../../utils/Utils";
+import {ensureElement} from "../../utils/utils";
 
 interface IPageUI {
     counter: number;

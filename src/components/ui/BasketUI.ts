@@ -1,4 +1,4 @@
-import {createElement, ensureElement} from "../../utils/Utils";
+import {createElement, ensureElement} from "../../utils/utils";
 import {EventEmitter} from "../base/Events";
 import {Component} from "../base/Component";
 import {ProductUI, IProductActions} from "../ui/ProductUI"
