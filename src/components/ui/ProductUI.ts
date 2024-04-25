@@ -1,29 +1,11 @@
-import {ensureElement} from "../../utils/utils";
-import {Component} from "../base/Component";
-
+import { IProductUI } from '../../types';
+import { PRODUCT_CATEGORY } from '../../utils/constants';
+import { ensureElement } from '../../utils/utils';
+import { Component } from '../base/Component';
 
 export interface IProductActions {
 	onClick: (event: MouseEvent) => void;
 }
-
-export interface IProductUI<T> {
-	index: number;
-	title: string;
-	description: string;
-	price: string;
-	image: string;
-	category: string;
-	inBasket: T;
-
-}
-
-export const ProductCategory = {
-	['софт-скил']: 'soft',
-	['другое']: 'other',
-	['кнопка']: 'button',
-	['хард-скил']: 'hard',
-	['дополнительное']: 'additional',
-};
 
 export class ProductUI<T> extends Component<IProductUI<T>> {
 	protected _title: HTMLElement;
@@ -34,7 +16,10 @@ export class ProductUI<T> extends Component<IProductUI<T>> {
 	protected _button: HTMLButtonElement;
 
 	constructor(
-		protected blockName: string,container: HTMLElement,	actions?: IProductActions) {
+		protected blockName: string,
+		container: HTMLElement,
+		actions?: IProductActions
+	) {
 		super(container);
 
 		this._title = ensureElement<HTMLElement>(`.${blockName}__title`, container);
@@ -67,61 +52,59 @@ export class ProductUI<T> extends Component<IProductUI<T>> {
 	get title(): string {
 		return this._title.textContent || '';
 	}
-    
+
 	set image(value: string) {
 		this.setImage(this._image, value, this.title);
 	}
 
-	set category(value: keyof typeof ProductCategory) {
+	set category(value: keyof typeof PRODUCT_CATEGORY) {
 		if (this._category) {
 			this.setText(this._category, value);
-			const categoryVisual = `card__category_${ProductCategory[value]}`;
+			const categoryVisual = `card__category_${PRODUCT_CATEGORY[value]}`;
 			this._category.classList.add(categoryVisual);
 		}
 	}
 
-	get category(): keyof typeof ProductCategory {
-		return this._category.textContent as keyof typeof ProductCategory;
+	get category(): keyof typeof PRODUCT_CATEGORY {
+		return this._category.textContent as keyof typeof PRODUCT_CATEGORY;
 	}
 
-	set price(value: string | null) {
+	set cost(value: string | null) {
 		this.setText(this._price, value ?? '');
 	}
 
-	get price(): string {
+	get cost(): string {
 		return this._price.textContent || null;
 	}
 
 	set description(value: string | string[]) {
 		this.setText(this._description, value);
 	}
-
 }
 
-
 export type CatalogItemStatusInBasket = {
-	inBasket: boolean;
+	status: boolean;
 };
 
 export class CatalogItem extends ProductUI<CatalogItemStatusInBasket> {
-    	constructor(container: HTMLElement, actions?: IProductActions) {
+	constructor(container: HTMLElement, actions?: IProductActions) {
 		super('card', container, actions);
 		this._image = ensureElement<HTMLImageElement>(`.card__image`, container);
 	}
 
-	set inBasket({ inBasket}: CatalogItemStatusInBasket) {
+	set status({ status }: CatalogItemStatusInBasket) {
 		if (this._button) {
-			if (this.price === null) {
+			if (this.cost === null) {
 				this.setText(this._button, 'Недоступно');
 				this._button.disabled = true;
-			}else{
-				if (!inBasket) {
+			} else {
+				if (!status) {
 					this.setText(this._button, 'В корзину');
-				} else{
+				} else {
 					this.setText(this._button, 'Уже в корзине');
 					this._button.disabled = true;
 				}
-			}			
+			}
 		}
 	}
 }

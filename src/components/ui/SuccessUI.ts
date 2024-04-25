@@ -1,5 +1,5 @@
-import {ensureElement} from "../../utils/utils";
-import {Component} from "../base/Component";
+import { ensureElement } from '../../utils/utils';
+import { Component } from '../base/Component';
 
 interface ISuccessUI {
 	title: string;
@@ -17,8 +17,14 @@ export class SuccessUI extends Component<ISuccessUI> {
 	constructor(container: HTMLElement, actions: ISuccessActions) {
 		super(container);
 
-		this._close = ensureElement<HTMLElement>('.order-success__close',this.container);
-		this._description = ensureElement<HTMLElement>('.order-success__description',this.container);
+		this._close = ensureElement<HTMLElement>(
+			'.order-success__close',
+			this.container
+		);
+		this._description = ensureElement<HTMLElement>(
+			'.order-success__description',
+			this.container
+		);
 
 		if (actions?.onClick) {
 			this._close.addEventListener('click', actions.onClick);
@@ -26,6 +32,6 @@ export class SuccessUI extends Component<ISuccessUI> {
 	}
 
 	set description(value: number) {
-		this._description.textContent = 'Списано ' + (value) + ' синапсов'
-	  }
+		this._description.textContent = 'Списано ' + value + ' синапсов';
+	}
 }

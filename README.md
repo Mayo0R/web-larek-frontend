@@ -43,7 +43,7 @@ yarn build
 
 ## Данные и типы данных, используемые в приложении
 
-Интерфейс карточки продукта
+Интерфейс для работы с карточкой продукта (в т.ч. данными), включая получение данных с сервера
 
 ```
 export interface IProduct {
@@ -59,23 +59,14 @@ export interface IProduct {
 
 ```
 
-Интерфейс для модели данных карточек
+Интерфейс для работы с частью отображения, где дополнительно помимо интерфейса IProduct необходимо показывать индекс (index) товара у корзины, отображать цену (cost) и status для работы с каталогом в корзине
 
 ```
-export interface IProductsData {
-    catalog: IProduct[];
-    preview:string | null;
-    getProducts(): IProductsData;
-	getProduct(productId: string): IProduct;
-	addProductToBasket(productId: string): IBasketItem;
-    removeProductFromBasket(productId: string, payload: Function | null): void;
+export interface IProductUI<T> extends IProduct{
+    index: number;
+    status: T;
+    cost: string;
 }
-```
-
-Данные карточки, используемые в корзине
-
-```
-export type IBasketItem = Pick<IProduct, '_id' | 'title' | 'price'>;
 ```
 
 Интерфейс оформление заказа
